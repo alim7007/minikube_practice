@@ -1,0 +1,106 @@
+// Kubectl CLI is for configuring the Minikube cluster
+// Minikube CLI is for start up/deleting the cluster
+
+// create a context
+kubectl config set-context my-context --namespace=my-namespace --cluster=my-cluster --user=my-user
+
+// Get which context using now (minikube or docker-desktop)
+kubectl config current-context
+//with some datails
+kubectl config view --output='jsonpath={..contexts[?(@.name=="'$(kubectl config current-context)'")]}'
+
+// List all of contexts
+kubectl config get-contexts
+
+// Switch to another context
+kubectl config use-context ($docker-desktop or $minikube)
+
+// Removie context
+kubectl config delete-context minikube
+
+// This will remove only specific components of the context
+kubectl config unset clusters.minikube
+kubectl config unset users.minikube
+
+// add or update a context's information 
+kubectl config set-context my-context --namespace=my-namespace
+//or 
+kubectl config set-context --current --namespace=my-namespace
+
+
+
+#####_MINIKUBE_#####
+
+minikube start/stop    // minikube delete
+
+kubectl version --output=json
+
+kubectl get | all | nodes | replicaset | pods | deployment | secret | configmap | namespace | ingress  -o wide
+
+kubectl create deployment nginx-depl --image=nginx
+
+kubectl edit deployment nginx-depl
+
+kubectl create deployment nginx-depl --image=nginx
+kubectl logs
+
+// get info about pod
+kubectl describe pod pod-name
+
+kubectl apply -f postgres-depl.yaml
+
+kubectl exec -it postgres-depl-55c74b966d-8prff -- bin/bash
+
+kubectl delete deployment postgres-depl
+
+
+
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+1.
+//firstly secrets with configmap
+kubectl apply -f mongo.app/mongo.secret.yaml
+kubectl apply -f mongo.app/mongo.configMap.yaml
+//then pods
+kubectl apply -f mongo.app/mongo.yaml
+kubectl apply -f mongo.app/mongo-express.yaml
+2.
+kubectl get all | grep mongodb
+kubectl get service
+mongo-express-service   LoadBalancer==>in addition assigns external IP address 
+mongodb-service         ClusterIP=====>by default does contain internal IP address
+note: "type:LoadBalancer" does not mean that "type:ClusterIP" can't have role of LoadBalancer
+minikube service mongo-express-service // expose a Kubernetes service externally with tunnel
+kubectl port-forward service/internal-mongo-express-service 3000:8081 // with docker-desktop
+3.
+kubectl create namespace my-namespace
+kubectl apply -f mongo.app/mongo.configMap.yaml --namespace=my-namespace // or set namespace inside file
+kubectl get configmap -n my-namespace // -n namespace, by default it takes configmap from namespace default
+kubens | my-namespace | default | // change active namespace
+kubectl api-resources --namespaced=tue // list of allowed to namespace
+kubectl delete all --all -n <namespace>
+4.
+minikube addons enable ingress
+kubectl apply -f ingress.yaml
+kubectl get ingress --watch // --watch == nodemon for node start "-d"
+
+
+
+
+kubectl create secret generic alimk8s.pro --from-file=tls.crt=alimk8s.pro.crt --from-file=tls.key=alimk8s.pro.key
+
+/////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////
+
+//kubernetes-dashboard get token
+kubectl -n kubernetes-dashboard create token admin-user
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login
+// but admin-user shoud exist, if not 
+kubectl apply -f service.account.yaml
+kubectl apply -f cluster.role.binding.yaml
+
+//ingress-nginx-controller install
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.7.1/deploy/static/provider/cloud/deploy.yaml
+
+// service selector == deployment label, to connect to POD through label
